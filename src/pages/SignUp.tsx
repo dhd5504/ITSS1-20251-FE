@@ -6,21 +6,39 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Eye, EyeOff, User, Mail, Lock } from "lucide-react";
 import authBackground from "@/assets/auth-background.jpg";
+import apiClient from "@/lib/axios";
+import { toast } from "sonner";
 
 const SignUp = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
-    name: "",
+    username: "",
     email: "",
     password: "",
     confirmPassword: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     // Handle signup logic here
-    console.log("Signup form submitted:", formData);
+    try {
+      const response = await apiClient.post("api/auth/register", formData, {
+        withCredentials: true,
+      });
+      if (response.status === 200) {
+        toast.success("アカウント作成に成功しました");
+        setFormData({
+          username: "",
+          email: "",
+          password: "",
+          confirmPassword: "",
+        });
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error("アカウント作成に失敗しました");
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -31,12 +49,12 @@ const SignUp = () => {
   };
 
   return (
-    <div 
+    <div
       className="min-h-screen flex items-center justify-center p-4 bg-auth-background relative overflow-hidden"
       style={{
         backgroundImage: `url(${authBackground})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
+        backgroundSize: "cover",
+        backgroundPosition: "center",
       }}
     >
       <Card className="w-full max-w-md shadow-2xl">
@@ -45,8 +63,12 @@ const SignUp = () => {
             <div className="w-16 h-16 rounded-full bg-gradient-to-br from-auth-gradient-start to-auth-gradient-end flex items-center justify-center mb-4">
               <User className="w-8 h-8 text-white" />
             </div>
-            <h1 className="text-2xl font-bold text-foreground mb-1">新規登録</h1>
-            <p className="text-sm text-muted-foreground">アカウントを作成して始めましょう</p>
+            <h1 className="text-2xl font-bold text-foreground mb-1">
+              新規登録
+            </h1>
+            <p className="text-sm text-muted-foreground">
+              アカウントを作成して始めましょう
+            </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -57,11 +79,11 @@ const SignUp = () => {
               <div className="relative">
                 <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
-                  id="name"
-                  name="name"
+                  id="username"
+                  name="username"
                   type="text"
                   placeholder="山田太郎"
-                  value={formData.name}
+                  value={formData.username}
                   onChange={handleChange}
                   className="pl-10"
                   required

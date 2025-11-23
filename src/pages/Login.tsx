@@ -9,6 +9,7 @@ import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import authBackground from "@/assets/auth-background.jpg";
+import axios from "@/lib/axios";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -20,13 +21,32 @@ const Login = () => {
     password: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const success = login(formData.email, formData.password);
-    if (success) {
-      toast.success("ログインに成功しました");
-      navigate("/home");
-    } else {
+    // Email validation regex
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(formData.email)) {
+      toast.error("メールアドレスの形式が正しくありません");
+      return;
+    }
+
+    // Password length regex (>= 8 characters)
+    const passwordRegex = /^.{8,}$/;
+    if (!passwordRegex.test(formData.password)) {
+      toast.error("パスワードは8文字以上である必要があります");
+      return;
+    }
+
+    try {
+      const response = await axios.post("api/auth/login", formData, {
+        withCredentials: true,
+      });
+      if (response.status === 200) {
+        toast.success("ログインに成功しました");
+        navigate("/home");
+      }
+    } catch (error) {
+      console.log(error);
       toast.error("メールアドレスまたはパスワードが間違っています");
     }
   };
@@ -39,16 +59,16 @@ const Login = () => {
   };
 
   return (
-    <div 
+    <div
       className="min-h-screen flex flex-col items-center justify-center p-4 bg-auth-background relative overflow-hidden"
       style={{
         backgroundImage: `url(${authBackground})`,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
+        backgroundSize: "cover",
+        backgroundPosition: "center",
       }}
     >
       <h1 className="text-3xl font-bold text-white mb-8">Welcome to App</h1>
-      
+
       <Card className="w-full max-w-md shadow-2xl">
         <CardContent className="pt-8 pb-6 px-8">
           <div className="flex flex-col items-center mb-6">
@@ -109,8 +129,8 @@ const Login = () => {
             </div>
 
             <div className="flex items-center space-x-2">
-              <Checkbox 
-                id="remember" 
+              <Checkbox
+                id="remember"
                 checked={rememberMe}
                 onCheckedChange={(checked) => setRememberMe(checked as boolean)}
               />
