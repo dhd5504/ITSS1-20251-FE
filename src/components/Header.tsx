@@ -3,10 +3,41 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLocation } from "@/contexts/LocationContext";
+import { useLogout } from "@/hooks/useLogout";
+import { FilterDropdown } from "@/components/FilterDropdown";
 
-export const Header = () => {
+interface HeaderProps {
+  onToggleFavorites?: () => void;
+  showFavorites?: boolean;
+  onFilterChange?: (filters: {
+    maxDistance?: number;
+    group?: string;
+    suitable?: string;
+    price?: string;
+  }) => void;
+  currentFilters?: {
+    maxDistance?: number;
+    group?: string;
+    suitable?: string;
+    price?: string;
+  };
+  onSearchChange?: (value: string) => void;
+  searchValue?: string;
+}
+
+export const Header = ({
+  onToggleFavorites,
+  showFavorites = false,
+  onFilterChange,
+  currentFilters,
+  onSearchChange,
+  searchValue = "",
+}: HeaderProps) => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
+  const { updateLocation, isLoading } = useLocation();
+  const { logout } = useLogout();
 
   return (
     <header className="bg-background border-b sticky top-0 z-50">
@@ -16,20 +47,32 @@ export const Header = () => {
             <Input
               placeholder="場所やカテゴリーを検索..."
               className="pl-10"
-              onClick={() => navigate("/search")}
+              value={searchValue}
+              onChange={(e) => onSearchChange?.(e.target.value)}
             />
             <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           </div>
-          <Button variant="outline" onClick={() => navigate("/search")}>
+          <Button
+            variant="outline"
+            onClick={updateLocation}
+            disabled={isLoading}
+          >
             <MapPin className="w-4 h-4" />
-            <h3>位置情報</h3>
+            <h3>{isLoading ? "取得中..." : "位置情報"}</h3>
           </Button>
-          <Button variant="outline" onClick={() => navigate("/search")}>
-            <Filter className="w-4 h-4" />
-            <h3>フィルター</h3>
-          </Button>
-          <Button variant="outline" onClick={() => navigate("/favorites")}>
-            <Heart className="w-4 h-4" />
+          <FilterDropdown
+            onFilterChange={onFilterChange}
+            currentFilters={currentFilters}
+          />
+          <Button
+            variant={showFavorites ? "default" : "outline"}
+            onClick={() =>
+              onToggleFavorites ? onToggleFavorites() : navigate("/favorites")
+            }
+          >
+            <Heart
+              className={`w-4 h-4 ${showFavorites ? "fill-current" : ""}`}
+            />
             <h3>お気に入り</h3>
           </Button>
           <div className="flex items-center justify-between">
@@ -43,7 +86,7 @@ export const Header = () => {
                   プロフィール
                 </button>
                 <button
-                  onClick={() => navigate("/login")}
+                  onClick={() => logout()}
                   className="text-sm hover:underline"
                 >
                   ログアウト

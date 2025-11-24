@@ -11,7 +11,7 @@ export interface Spot {
   price: string;
   phone: string;
   description: string;
-  features: string[];
+  features: string;
   reviews: Review[];
 }
 
@@ -39,7 +39,7 @@ export const mockSpots: Spot[] = [
     phone: "03-XXXX-XXXX",
     description:
       "子供たちが楽しめる屋内遊園地です。安全で清潔な環境で、様々な遊具があります。",
-    features: ["屋内", "駐車場", "WiFi", "授乳室"],
+    features: '["屋内", "駐車場", "WiFi", "授乳室"]',
     reviews: [],
   },
   {
@@ -55,7 +55,7 @@ export const mockSpots: Spot[] = [
     price: "¥2,000",
     phone: "03-XXXX-XXXX",
     description: "おしゃれなカフェとショップが集まるモールです。",
-    features: ["カフェ", "レストラン", "ショップ", "駐車場"],
+    features: '["カフェ", "レストラン", "ショップ", "駐車場"]',
     reviews: [],
   },
   {
@@ -71,7 +71,7 @@ export const mockSpots: Spot[] = [
     price: "¥800",
     phone: "03-XXXX-XXXX",
     description: "静かで落ち着いた雰囲気のカフェです。",
-    features: ["WiFi", "電源", "禁煙"],
+    features: '["WiFi", "電源", "禁煙"]',
     reviews: [],
   },
   {
@@ -87,7 +87,7 @@ export const mockSpots: Spot[] = [
     price: "¥1,500",
     phone: "03-XXXX-XXXX",
     description: "様々な動物を見ることができる動物園です。",
-    features: ["駐車場", "レストラン", "授乳室", "ベビーカー"],
+    features: `["駐車場", "レストラン", "授乳室", "ベビーカー"]`,
     reviews: [],
   },
   {
@@ -103,7 +103,7 @@ export const mockSpots: Spot[] = [
     price: "無料",
     phone: "03-XXXX-XXXX",
     description: "はっきりとそこにいて、子どもたちと楽しく過ごしてください。",
-    features: ["遊具", "芝生", "トイレ", "駐車場"],
+    features: `["遊具", "芝生", "トイレ", "駐車場"]`,
     reviews: [
       {
         id: "r1",
@@ -137,7 +137,7 @@ export const mockSpots: Spot[] = [
     phone: "03-XXXX-XXXX",
     description:
       "子どもたちのためのテーマパークです。ブランコ、トランポリン、ボールプールなどのアクティビティがあります。",
-    features: ["トイレ", "駐車場", "カフェ", "休憩室", "オムツ替え"],
+    features: `["トイレ", "駐車場", "カフェ", "休憩室", "オムツ替え"]`,
     reviews: [
       {
         id: "r3",
