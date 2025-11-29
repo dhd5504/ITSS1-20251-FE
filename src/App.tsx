@@ -5,6 +5,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { LocationProvider } from "@/contexts/LocationContext";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { GuestRoute } from "@/components/GuestRoute";
 import Index from "./pages/Index";
 import Home from "./pages/Home";
 import SpotDetail from "./pages/SpotDetail";
@@ -27,13 +29,22 @@ const App = () => (
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Index />} />
-              <Route path="/home" element={<Home />} />
-              <Route path="/spot/:id" element={<SpotDetail />} />
-              <Route path="/review/:id" element={<Review />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/signup" element={<SignUp />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/forgot-password" element={<ForgotPassword />} />
+
+              {/* Protected Routes */}
+              <Route element={<ProtectedRoute />}>
+                <Route path="/home" element={<Home />} />
+                <Route path="/spot/:id" element={<SpotDetail />} />
+                <Route path="/review/:id" element={<Review />} />
+                <Route path="/profile" element={<Profile />} />
+              </Route>
+
+              {/* Guest Routes */}
+              <Route element={<GuestRoute />}>
+                <Route path="/signup" element={<SignUp />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+              </Route>
+
               {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
               <Route path="*" element={<NotFound />} />
             </Routes>

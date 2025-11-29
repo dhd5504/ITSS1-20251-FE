@@ -42,6 +42,8 @@ const Login = () => {
         withCredentials: true,
       });
       if (response.status === 200) {
+        const { user, refreshToken } = response.data;
+        login(user, refreshToken);
         toast.success("ログインに成功しました");
         navigate("/home");
       }

@@ -6,6 +6,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useLocation } from "@/contexts/LocationContext";
 import { useLogout } from "@/hooks/useLogout";
 import { FilterDropdown } from "@/components/FilterDropdown";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface HeaderProps {
   onToggleFavorites?: () => void;
@@ -75,25 +81,21 @@ export const Header = ({
             />
             <h3>お気に入り</h3>
           </Button>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <User className="w-4 h-4 text-muted-foreground" />
-              <div className="flex flex-col">
-                <button
-                  onClick={() => navigate("/profile")}
-                  className="text-sm hover:underline"
-                >
-                  プロフィール
-                </button>
-                <button
-                  onClick={() => logout()}
-                  className="text-sm hover:underline"
-                >
-                  ログアウト
-                </button>
-              </div>
-            </div>
-          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="rounded-full">
+                <User className="w-5 h-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => navigate("/profile")}>
+                プロフィール
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => logout()}>
+                ログアウト
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </header>

@@ -115,6 +115,7 @@ const Home = () => {
     const fetchData = async () => {
       await fetchSpots();
     };
+    console.log(latitude, longitude);
     fetchData();
   }, [latitude, longitude, params, currentPage]);
 

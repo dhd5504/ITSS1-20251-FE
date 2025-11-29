@@ -8,6 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import apiClient from "@/lib/axios";
 import { toast } from "sonner";
 import { Spot } from "@/data/mockData";
+import { formatHours, formatPrice } from "@/lib/constants";
 
 const SpotDetail = () => {
   const { id } = useParams();
@@ -137,23 +138,47 @@ const SpotDetail = () => {
               </div>
             </div>
 
-            <div className="flex items-start gap-2">
-              <Clock className="w-4 h-4 mt-1 text-muted-foreground flex-shrink-0" />
-              <div>
-                <p className="font-medium">ビジネス時間</p>
-                <p className="text-sm text-muted-foreground">
-                  平日: {spot.hours}
-                  <br />
-                  土日: {spot.hours}
-                </p>
+            {spot.hours === "24時間営業" ? (
+              <div className="flex items-center gap-2">
+                <Clock className="w-4 h-4 mt-1 text-muted-foreground flex-shrink-0" />
+                <span className="text-sm text-muted-foreground">
+                  24時間営業
+                </span>
               </div>
-            </div>
-
+            ) : formatHours(spot.hours).normal ===
+              formatHours(spot.hours).weekend ? (
+              <div className="flex items-center gap-2">
+                <Clock className="w-4 h-4 mt-1 text-muted-foreground flex-shrink-0" />
+                <span className="text-sm text-muted-foreground">
+                  {formatHours(spot.hours).normal}
+                </span>
+              </div>
+            ) : (
+              <div>
+                <div className="flex items-start gap-2">
+                  <Clock className="w-4 h-4 mt-1 text-muted-foreground flex-shrink-0" />
+                  <div>
+                    <p className="font-medium">平日:</p>
+                    <p className="text-sm text-muted-foreground">
+                      {formatHours(spot.hours).normal}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2">
+                  <Clock className="w-4 h-4 mt-1 text-muted-foreground flex-shrink-0" />
+                  <div>
+                    <p className="font-medium">週末:</p>
+                    <p className="text-sm text-muted-foreground">
+                      {formatHours(spot.hours).weekend}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
             <div>
               <p className="font-medium mb-2">料金</p>
               <div className="flex gap-2">
-                <Badge>大人 {spot.price}</Badge>
-                <Badge>子供 ¥500</Badge>
+                <Badge>{formatPrice(spot.price)}</Badge>
               </div>
             </div>
           </div>

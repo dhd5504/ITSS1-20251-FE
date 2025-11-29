@@ -7,10 +7,14 @@ export const useLogout = () => {
   const logoutStore = useAppStore((state) => state.logout);
 
   const logout = async () => {
-    const response = await apiClient.post("api/auth/logout");
-    if (response.status === 200) {
-      logoutStore();
-      navigate("/login");
+    try {
+      const response = await apiClient.put("api/auth/logout");
+      if (response.status === 200) {
+        logoutStore();
+        navigate("/login");
+      }
+    } catch (error) {
+      console.log(error);
     }
   };
 
