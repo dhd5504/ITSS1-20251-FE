@@ -310,7 +310,7 @@ const SpotDetail = () => {
                     </div>
                     <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
                       <span>
-                        投稿者 {review.userName} • {" "}
+                        投稿者 {review.userName} •{" "}
                         {formatDateTime(review.date as string)}
                       </span>
                       {canModifyReview(review.userId as string) && (
@@ -325,13 +325,15 @@ const SpotDetail = () => {
                               )
                             }
                           >
-                            chỉnh sửa
+                            編集
                           </button>
                           <button
                             className="text-destructive hover:underline"
-                            onClick={() => handleDeleteReview(review.id as string)}
+                            onClick={() =>
+                              handleDeleteReview(review.id as string)
+                            }
                           >
-                            xóa 
+                            削除
                           </button>
                         </div>
                       )}

@@ -173,7 +173,9 @@ const Review = () => {
             <div className="space-y-4">
               <div>
                 <Label className="mb-2 block">場所: {spot.name}</Label>
-                <p className="text-sm text-muted-foreground">投稿者: Kim</p>
+                <p className="text-sm text-muted-foreground">
+                  投稿者: {user.username}
+                </p>
               </div>
 
               <div>
@@ -277,7 +279,7 @@ const Review = () => {
                   </div>
                   <div className="flex justify-between items-center text-xs text-muted-foreground">
                     <span>
-                      投稿者 {review.userName} • {" "}
+                      投稿者 {review.userName} •{" "}
                       {formatDateTime(review.date as string)}
                     </span>
                     {canModifyReview(review.userId as string) && (
@@ -292,13 +294,15 @@ const Review = () => {
                             )
                           }
                         >
-                         chỉnh sửa
+                          編集
                         </button>
                         <button
                           className="text-destructive hover:underline"
-                          onClick={() => handleDeleteReview(review.id as string)}
+                          onClick={() =>
+                            handleDeleteReview(review.id as string)
+                          }
                         >
-                          xóa 
+                          削除
                         </button>
                       </div>
                     )}

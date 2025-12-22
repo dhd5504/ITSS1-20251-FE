@@ -40,7 +40,8 @@ const Login = () => {
       if (response.status === 200) {
         const payload = response.data?.data ?? response.data;
         const apiUser = payload.user ?? payload;
-        const refreshToken = payload.refreshToken ?? payload?.tokens?.refreshToken ?? "";
+        const refreshToken =
+          payload.refreshToken ?? payload?.tokens?.refreshToken ?? "";
         const fallbackName =
           apiUser?.username || apiUser?.name || formData.email.split("@")[0];
         const normalizedUser = {
@@ -48,10 +49,7 @@ const Login = () => {
           name: apiUser?.name ?? fallbackName,
           username: apiUser?.username ?? fallbackName,
           id:
-            apiUser?.id ??
-            apiUser?.userId ??
-            apiUser?.username ??
-            fallbackName,
+            apiUser?.id ?? apiUser?.userId ?? apiUser?.username ?? fallbackName,
           avatar: apiUser?.avatar ?? "",
           role: apiUser?.role,
         } as any;
@@ -178,12 +176,12 @@ const Login = () => {
                 新規登録
               </Link>
             </p>
-            <Link
+            {/* <Link
               to="/forgot-password"
               className="block text-sm text-primary font-medium hover:underline"
             >
               パスワードを忘れた？
-            </Link>
+            </Link> */}
           </div>
         </CardContent>
       </Card>
