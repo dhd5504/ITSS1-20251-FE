@@ -313,7 +313,7 @@ const SpotDetail = () => {
                         投稿者 {review.userName} •{" "}
                         {formatDateTime(review.date as string)}
                       </span>
-                      {canModifyReview(review.userId as string) && (
+                      {/* {canModifyReview(review.userId as string) && (
                         <div className="flex gap-2">
                           <button
                             className="text-primary hover:underline"
@@ -336,7 +336,7 @@ const SpotDetail = () => {
                             削除
                           </button>
                         </div>
-                      )}
+                      )} */}
                     </div>
                   </Card>
                 ))}

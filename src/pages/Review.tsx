@@ -32,6 +32,11 @@ const Review = () => {
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [editingReview, setEditingReview] = useState<{
+    id: string;
+    rating: number;
+    content: string;
+  } | null>(null);
   const { user } = useAuth();
 
   const tags = ["環境", "清潔", "親切", "楽しい", "安全"];
@@ -66,50 +71,75 @@ const Review = () => {
     return targetId === currentId;
   };
 
-  const handleDeleteReview = async (reviewId: string) => {
-    try {
-      const res = await apiClient.delete(
-        `api/spots/${spot?.id}/reviews/${reviewId}`,
-        { withCredentials: true }
-      );
-      if (res.status === 200) {
-        toast.success("レビューを削除しました");
-        fetchSpot();
+  const handleDeleteReview = (reviewId: string) => {
+    toast.custom(
+      (t) => (
+        <>
+          {/* Backdrop overlay */}
+          <div
+            className="fixed inset-0 z-40"
+            onClick={() => toast.dismiss(t)}
+          />
+          {/* Toast content */}
+          <div className="relative z-50 bg-white rounded-lg shadow-xl p-5 max-w-sm">
+            <p className="text-sm mb-4 text-center">
+              本当にこのレビューを削除しますか？
+            </p>
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                variant="destructive"
+                className="flex-1 text-sm"
+                onClick={async () => {
+                  toast.dismiss(t);
+                  try {
+                    const res = await apiClient.delete(
+                      `api/spots/${spot?.id}/reviews/${reviewId}`,
+                      { withCredentials: true }
+                    );
+                    if (res.status === 200) {
+                      toast.success("レビューを削除しました");
+                      fetchSpot();
+                    }
+                  } catch (error) {
+                    console.error(error);
+                    toast.error("レビューを削除できませんでした");
+                  }
+                }}
+              >
+                削除
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="flex-1 text-sm"
+                onClick={() => toast.dismiss(t)}
+              >
+                キャンセル
+              </Button>
+            </div>
+          </div>
+        </>
+      ),
+      {
+        duration: Infinity,
+        position: "top-center",
       }
-    } catch (error) {
-      console.error(error);
-      toast.error("レビューを削除できませんでした");
-    }
+    );
   };
 
-  const handleEditReview = async (
+  const handleEditReview = (
     reviewId: string,
     currentRating: number,
     currentContent: string
   ) => {
-    const newContent = window.prompt("新しいレビュー内容：", currentContent);
-    if (newContent === null) return;
-    const newRatingStr = window.prompt("評価 1〜5：", String(currentRating));
-    if (newRatingStr === null) return;
-    const newRating = Number(newRatingStr);
-    if (Number.isNaN(newRating) || newRating < 1 || newRating > 5) {
-      toast.error("評価が正しくありません");
-      return;
-    }
-    try {
-      const res = await apiClient.put(
-        `api/spots/${spot?.id}/reviews/${reviewId}`,
-        { rating: newRating, content: newContent },
-        { withCredentials: true }
-      );
-      if (res.status === 200) {
-        toast.success("レビューを更新しました");
-        fetchSpot();
-      }
-    } catch (error) {
-      console.error(error);
-      toast.error("レビューを更新できませんでした");
-    }
+    setEditingReview({
+      id: reviewId,
+      rating: currentRating,
+      content: currentContent,
+    });
+    setRating(currentRating);
+    setComment(currentContent);
   };
 
   const handleSubmit = async () => {
@@ -121,19 +151,41 @@ const Review = () => {
       toast.error("コメントを入力してください");
       return;
     }
+
     try {
-      const res = await apiClient.post(
-        `api/spots/${id}/reviews`,
-        { rating, content: comment },
-        { withCredentials: true }
-      );
-      if (res.status === 200) {
-        toast.success("レビューを投稿しました！");
-        navigate(-1);
+      if (editingReview) {
+        // Update existing review
+        const res = await apiClient.put(
+          `api/spots/${spot?.id}/reviews/${editingReview.id}`,
+          { rating, content: comment },
+          { withCredentials: true }
+        );
+        if (res.status === 200) {
+          toast.success("レビューを更新しました");
+          setEditingReview(null);
+          setRating(0);
+          setComment("");
+          fetchSpot();
+        }
+      } else {
+        // Create new review
+        const res = await apiClient.post(
+          `api/spots/${id}/reviews`,
+          { rating, content: comment },
+          { withCredentials: true }
+        );
+        if (res.status === 200) {
+          toast.success("レビューを投稿しました！");
+          navigate(-1);
+        }
       }
     } catch (error) {
       console.error(error);
-      toast.error("スポットの取得に失敗しました");
+      toast.error(
+        editingReview
+          ? "レビューを更新できませんでした"
+          : "レビューを投稿できませんでした"
+      );
     }
   };
 
@@ -168,7 +220,9 @@ const Review = () => {
 
         <div className="grid md:grid-cols-2 gap-6">
           <Card className="p-6">
-            <h2 className="text-lg font-semibold mb-4">レビューを投稿</h2>
+            <h2 className="text-lg font-semibold mb-4">
+              {editingReview ? "レビューを編集" : "レビューを投稿"}
+            </h2>
 
             <div className="space-y-4">
               <div>
@@ -220,7 +274,7 @@ const Review = () => {
 
               <div className="flex gap-2">
                 <Button onClick={handleSubmit} className="flex-1">
-                  レビューを投稿
+                  {editingReview ? "レビューを更新" : "レビューを投稿"}
                 </Button>
                 <Button
                   variant="outline"
@@ -228,9 +282,10 @@ const Review = () => {
                     setRating(0);
                     setComment("");
                     setSelectedTags([]);
+                    setEditingReview(null);
                   }}
                 >
-                  リセット
+                  {editingReview ? "キャンセル" : "リセット"}
                 </Button>
               </div>
             </div>

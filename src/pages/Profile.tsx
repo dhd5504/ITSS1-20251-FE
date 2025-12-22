@@ -15,8 +15,7 @@ const Profile = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [formData, setFormData] = useState({
-    firstName: "たなか",
-    lastName: "れいこ",
+    fullName: user?.name || "",
     email: user?.email || "",
     currentPassword: "",
     newPassword: "",
@@ -36,11 +35,7 @@ const Profile = () => {
   return (
     <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-6 max-w-2xl">
-        <Button
-          variant="ghost"
-          className="mb-4"
-          onClick={() => navigate(-1)}
-        >
+        <Button variant="ghost" className="mb-4" onClick={() => navigate(-1)}>
           <ArrowLeft className="w-4 h-4 mr-2" />
           戻る
         </Button>
@@ -51,7 +46,7 @@ const Profile = () => {
               <AvatarImage src={user?.avatar} />
               <AvatarFallback>TR</AvatarFallback>
             </Avatar>
-            <h2 className="text-xl font-bold">{formData.firstName} {formData.lastName}</h2>
+            <h2 className="text-xl font-bold">{formData.fullName}</h2>
             <p className="text-sm text-muted-foreground">{formData.email}</p>
           </div>
 
@@ -60,46 +55,50 @@ const Profile = () => {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="lastName" className="text-sm">姓</Label>
-                <Input
-                  id="lastName"
-                  value={formData.lastName}
-                  onChange={(e) => setFormData({...formData, lastName: e.target.value})}
-                  className="bg-muted/30"
-                />
-              </div>
-              <div>
-                <Label htmlFor="firstName" className="text-sm">名</Label>
-                <Input
-                  id="firstName"
-                  value={formData.firstName}
-                  onChange={(e) => setFormData({...formData, firstName: e.target.value})}
-                  className="bg-muted/30"
-                />
-              </div>
-            </div>
-
             <div>
-              <Label htmlFor="email" className="text-sm">メールアドレス</Label>
+              <Label htmlFor="fullName" className="text-sm">
+                お名前
+              </Label>
               <Input
-                id="email"
-                type="email"
-                value={formData.email}
-                onChange={(e) => setFormData({...formData, email: e.target.value})}
+                id="fullName"
+                value={formData.fullName}
+                onChange={(e) =>
+                  setFormData({ ...formData, fullName: e.target.value })
+                }
                 className="bg-muted/30"
               />
             </div>
 
             <div>
-              <Label htmlFor="currentPassword" className="text-sm">パスワード</Label>
+              <Label htmlFor="email" className="text-sm">
+                メールアドレス
+              </Label>
+              <Input
+                id="email"
+                type="email"
+                value={formData.email}
+                onChange={(e) =>
+                  setFormData({ ...formData, email: e.target.value })
+                }
+                className="bg-muted/30"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="currentPassword" className="text-sm">
+                パスワード
+              </Label>
               <div className="relative">
                 <Input
                   id="currentPassword"
                   type={showPassword ? "text" : "password"}
                   value={formData.currentPassword}
-                  onChange={(e) => setFormData({...formData, currentPassword: e.target.value})}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      currentPassword: e.target.value,
+                    })
+                  }
                   placeholder="••••••••"
                   className="bg-muted/30 pr-10"
                 />
@@ -108,19 +107,27 @@ const Profile = () => {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2"
                 >
-                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showPassword ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
                 </button>
               </div>
             </div>
 
             <div>
-              <Label htmlFor="newPassword" className="text-sm">パスワード（確認）</Label>
+              <Label htmlFor="newPassword" className="text-sm">
+                パスワード（確認）
+              </Label>
               <div className="relative">
                 <Input
                   id="newPassword"
                   type={showNewPassword ? "text" : "password"}
                   value={formData.newPassword}
-                  onChange={(e) => setFormData({...formData, newPassword: e.target.value})}
+                  onChange={(e) =>
+                    setFormData({ ...formData, newPassword: e.target.value })
+                  }
                   placeholder="••••••••"
                   className="bg-muted/30 pr-10"
                 />
@@ -129,13 +136,17 @@ const Profile = () => {
                   onClick={() => setShowNewPassword(!showNewPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2"
                 >
-                  {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {showNewPassword ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
                 </button>
               </div>
             </div>
 
             <div className="flex gap-3 pt-4">
-              <Button 
+              <Button
                 type="button"
                 variant="outline"
                 className="flex-1"
@@ -143,7 +154,7 @@ const Profile = () => {
               >
                 ログアウト
               </Button>
-              <Button 
+              <Button
                 type="submit"
                 className="flex-1 bg-green-500 hover:bg-green-600"
               >
@@ -151,7 +162,7 @@ const Profile = () => {
               </Button>
             </div>
 
-            <Button 
+            <Button
               type="button"
               variant="link"
               className="w-full text-primary"

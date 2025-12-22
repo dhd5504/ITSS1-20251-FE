@@ -12,6 +12,7 @@ export interface Spot {
   phone: string;
   description: string;
   features: string;
+  recommendedTransport?: string;
   reviews: Review[];
 }
 

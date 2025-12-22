@@ -1,4 +1,4 @@
-import { Heart, MapPin, Clock } from "lucide-react";
+import { Heart, MapPin, Clock, Footprints, Bike, Car, Bus } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,42 @@ export const SpotCard = ({ spot }: SpotCardProps) => {
   const navigate = useNavigate();
   const { favorites, toggleFavorite } = useAuth();
   const isFavorite = favorites.includes(spot.id);
+
+  const getTransportIcon = (mode?: string) => {
+    switch (mode) {
+      case "WALK":
+        return <Footprints className="w-3 h-3" />;
+      case "BICYCLE":
+        return <Bike className="w-3 h-3" />;
+      case "MOTORBIKE":
+        return <Bike className="w-3 h-3" />;
+      case "CAR/TAXI":
+        return <Car className="w-3 h-3" />;
+      default:
+        return <Bus className="w-3 h-3" />;
+    }
+  };
+
+  const getEstimatedTime = (distance: number, mode?: string) => {
+    let minPerKm = 1;
+    switch (mode) {
+      case "WALK":
+        minPerKm = 12.5;
+        break;
+      case "BICYCLE":
+        minPerKm = 4;
+        break;
+      case "MOTORBIKE":
+        minPerKm = 2;
+        break;
+      case "CAR/TAXI":
+        minPerKm = 1.5;
+        break;
+      default:
+        minPerKm = 3;
+    }
+    return Math.ceil(distance * minPerKm);
+  };
 
   return (
     <Card
@@ -77,6 +113,18 @@ export const SpotCard = ({ spot }: SpotCardProps) => {
                   {formatHours(spot.hours).weekend}
                 </span>
               </div>
+            </div>
+          )}
+          {spot.recommendedTransport && (
+            <div className="flex items-center gap-1 mt-1">
+              {getTransportIcon(spot.recommendedTransport)}
+              <span>
+                {getEstimatedTime(
+                  parseFloat(spot.distance),
+                  spot.recommendedTransport
+                )}
+                分
+              </span>
             </div>
           )}
         </div>
