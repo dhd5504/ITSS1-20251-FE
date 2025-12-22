@@ -91,7 +91,10 @@ export const Header = ({
               <DropdownMenuItem onClick={() => navigate("/profile")}>
                 プロフィール
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => logout()}>
+              <DropdownMenuItem
+                onClick={() => logout()}
+                className="text-red-600 hover:text-red-700 focus:text-red-700"
+              >
                 ログアウト
               </DropdownMenuItem>
             </DropdownMenuContent>
