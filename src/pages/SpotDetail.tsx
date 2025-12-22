@@ -10,31 +10,43 @@ import { toast } from "sonner";
 import { Spot } from "@/data/mockData";
 import { formatHours, formatPrice } from "@/lib/constants";
 
+const formatDateTime = (value?: string) => {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleString("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
 const SpotDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { favorites, toggleFavorite } = useAuth();
+  const { favorites, toggleFavorite, user } = useAuth();
   const [spot, setSpot] = useState<Spot | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchSpot = async () => {
-      try {
-        setIsLoading(true);
-        const response = await apiClient.get(`api/spots/${id}`);
+  const fetchSpot = async () => {
+    try {
+      setIsLoading(true);
+      const response = await apiClient.get(`api/spots/${id}`);
 
-        if (response.status === 200) {
-          console.log(response.data.data);
-          setSpot(response.data.data);
-        }
-      } catch (error) {
-        toast.error("スポットの取得に失敗しました");
-        console.error(error);
-      } finally {
-        setIsLoading(false);
+      if (response.status === 200) {
+        setSpot(response.data.data);
       }
-    };
+    } catch (error) {
+      toast.error("スポットの取得に失敗しました");
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
+  useEffect(() => {
     if (id) {
       fetchSpot();
     }
@@ -58,12 +70,66 @@ const SpotDetail = () => {
 
   const isFavorite = favorites.includes(spot.id);
 
-  // Helper to get higher resolution image for Unsplash or handle local path
   const getOptimizedImageUrl = (url: string) => {
     if (url.includes("images.unsplash.com")) {
       return url.replace("w=800", "w=1920").replace("w=400", "w=1920");
     }
     return url.startsWith("http") ? url : `/${url}`;
+  };
+
+  const canModifyReview = (reviewUserId?: string) => {
+    if (!user) return false;
+    const currentId = (user.id ?? "").toString().trim().toLowerCase();
+    if (!reviewUserId) return false;
+    const targetId = reviewUserId.toString().trim().toLowerCase();
+    return targetId === currentId;
+  };
+
+  const handleDeleteReview = async (reviewId: string) => {
+    try {
+      const res = await apiClient.delete(
+        `api/spots/${spot.id}/reviews/${reviewId}`,
+        { withCredentials: true }
+      );
+      if (res.status === 200) {
+        toast.success("レビューを削除しました");
+        fetchSpot();
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("レビューを削除できませんでした");
+    }
+  };
+
+  const handleEditReview = async (
+    reviewId: string,
+    currentRating: number,
+    currentContent: string
+  ) => {
+    const newContent = window.prompt("新しいレビュー内容：", currentContent);
+    if (newContent === null) return;
+    const newRatingStr = window.prompt("評価 1〜5 ：", String(currentRating));
+    if (newRatingStr === null) return;
+    const newRating = Number(newRatingStr);
+    if (Number.isNaN(newRating) || newRating < 1 || newRating > 5) {
+      toast.error("評価が正しくありません");
+      return;
+    }
+
+    try {
+      const res = await apiClient.put(
+        `api/spots/${spot.id}/reviews/${reviewId}`,
+        { rating: newRating, content: newContent },
+        { withCredentials: true }
+      );
+      if (res.status === 200) {
+        toast.success("レビューを更新しました");
+        fetchSpot();
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("レビューを更新できませんでした");
+    }
   };
 
   return (
@@ -242,9 +308,34 @@ const SpotDetail = () => {
                         </Badge>
                       ))}
                     </div>
-                    <p className="text-xs text-muted-foreground mt-2">
-                      Posted by {review.userName} • {review.date}
-                    </p>
+                    <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
+                      <span>
+                        投稿者 {review.userName} • {" "}
+                        {formatDateTime(review.date as string)}
+                      </span>
+                      {canModifyReview(review.userId as string) && (
+                        <div className="flex gap-2">
+                          <button
+                            className="text-primary hover:underline"
+                            onClick={() =>
+                              handleEditReview(
+                                review.id as string,
+                                review.rating as number,
+                                (review.comment as string) || ""
+                              )
+                            }
+                          >
+                            chỉnh sửa
+                          </button>
+                          <button
+                            className="text-destructive hover:underline"
+                            onClick={() => handleDeleteReview(review.id as string)}
+                          >
+                            xóa 
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </Card>
                 ))}
               </div>
