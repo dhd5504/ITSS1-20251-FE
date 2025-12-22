@@ -25,7 +25,25 @@ export const useAppStore = create<AppState>()(
       refreshToken: null,
       isAuthenticated: false,
       login: (user, refreshToken) => {
-        set({ user, refreshToken, isAuthenticated: true });
+        const resolvedId =
+          (user as any).id ??
+          (user as any).userId ??
+          (user as any).username ??
+          (user.email ? user.email.split("@")[0] : "");
+        const resolvedName =
+          user.name ??
+          (user as any).username ??
+          (user.email ? user.email.split("@")[0] : "");
+
+        set({
+          user: {
+            ...user,
+            id: resolvedId?.toString(),
+            name: resolvedName,
+          },
+          refreshToken,
+          isAuthenticated: true,
+        });
       },
       logout: () => {
         set({ user: null, refreshToken: null, isAuthenticated: false });

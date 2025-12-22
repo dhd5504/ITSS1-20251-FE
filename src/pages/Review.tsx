@@ -9,6 +9,20 @@ import { ArrowLeft, Star } from "lucide-react";
 import { toast } from "sonner";
 import apiClient from "@/lib/axios";
 import { Spot } from "@/data/mockData";
+import { useAuth } from "@/contexts/AuthContext";
+
+const formatDateTime = (value?: string) => {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleString("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
 
 const Review = () => {
   const { id } = useParams();
@@ -18,32 +32,87 @@ const Review = () => {
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const { user } = useAuth();
 
   const tags = ["環境", "清潔", "親切", "楽しい", "安全"];
 
-  useEffect(() => {
-    const fetchSpot = async () => {
-      try {
-        setIsLoading(true);
-        const response = await apiClient.get(`api/spots/${id}`);
+  const fetchSpot = async () => {
+    try {
+      setIsLoading(true);
+      const response = await apiClient.get(`api/spots/${id}`);
 
-        if (response.status === 200) {
-          setSpot(response.data.data);
-        }
-      } catch (error) {
-        toast.error("スポットの取得に失敗しました");
-        console.error(error);
-      } finally {
-        setIsLoading(false);
+      if (response.status === 200) {
+        setSpot(response.data.data);
       }
-    };
+    } catch (error) {
+      toast.error("スポットの取得に失敗しました");
+      console.error(error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
+  useEffect(() => {
     if (id) {
       fetchSpot();
     }
   }, [id]);
 
-  const handleSubmit = () => {
+  const canModifyReview = (reviewUserId?: string) => {
+    if (!user) return false;
+    const currentId = (user.id ?? "").toString().trim().toLowerCase();
+    if (!reviewUserId) return false;
+    const targetId = reviewUserId.toString().trim().toLowerCase();
+    return targetId === currentId;
+  };
+
+  const handleDeleteReview = async (reviewId: string) => {
+    try {
+      const res = await apiClient.delete(
+        `api/spots/${spot?.id}/reviews/${reviewId}`,
+        { withCredentials: true }
+      );
+      if (res.status === 200) {
+        toast.success("レビューを削除しました");
+        fetchSpot();
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("レビューを削除できませんでした");
+    }
+  };
+
+  const handleEditReview = async (
+    reviewId: string,
+    currentRating: number,
+    currentContent: string
+  ) => {
+    const newContent = window.prompt("新しいレビュー内容：", currentContent);
+    if (newContent === null) return;
+    const newRatingStr = window.prompt("評価 1〜5：", String(currentRating));
+    if (newRatingStr === null) return;
+    const newRating = Number(newRatingStr);
+    if (Number.isNaN(newRating) || newRating < 1 || newRating > 5) {
+      toast.error("評価が正しくありません");
+      return;
+    }
+    try {
+      const res = await apiClient.put(
+        `api/spots/${spot?.id}/reviews/${reviewId}`,
+        { rating: newRating, content: newContent },
+        { withCredentials: true }
+      );
+      if (res.status === 200) {
+        toast.success("レビューを更新しました");
+        fetchSpot();
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("レビューを更新できませんでした");
+    }
+  };
+
+  const handleSubmit = async () => {
     if (rating === 0) {
       toast.error("評価を選択してください");
       return;
@@ -52,8 +121,20 @@ const Review = () => {
       toast.error("コメントを入力してください");
       return;
     }
-    toast.success("レビューを投稿しました！");
-    navigate(-1);
+    try {
+      const res = await apiClient.post(
+        `api/spots/${id}/reviews`,
+        { rating, content: comment },
+        { withCredentials: true }
+      );
+      if (res.status === 200) {
+        toast.success("レビューを投稿しました！");
+        navigate(-1);
+      }
+    } catch (error) {
+      console.error(error);
+      toast.error("スポットの取得に失敗しました");
+    }
   };
 
   if (isLoading) {
@@ -196,16 +277,31 @@ const Review = () => {
                   </div>
                   <div className="flex justify-between items-center text-xs text-muted-foreground">
                     <span>
-                      Posted by {review.userName} • {review.date}
+                      投稿者 {review.userName} • {" "}
+                      {formatDateTime(review.date as string)}
                     </span>
-                    <div className="flex gap-2">
-                      <button className="text-primary hover:underline">
-                        編集
-                      </button>
-                      <button className="text-destructive hover:underline">
-                        削除
-                      </button>
-                    </div>
+                    {canModifyReview(review.userId as string) && (
+                      <div className="flex gap-2">
+                        <button
+                          className="text-primary hover:underline"
+                          onClick={() =>
+                            handleEditReview(
+                              review.id as string,
+                              review.rating as number,
+                              (review.comment as string) || ""
+                            )
+                          }
+                        >
+                         chỉnh sửa
+                        </button>
+                        <button
+                          className="text-destructive hover:underline"
+                          onClick={() => handleDeleteReview(review.id as string)}
+                        >
+                          xóa 
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </Card>
               ))}

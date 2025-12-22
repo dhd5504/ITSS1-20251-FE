@@ -23,17 +23,13 @@ const Login = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Email validation regex
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(formData.email)) {
       toast.error("メールアドレスの形式が正しくありません");
       return;
     }
-
-    // Password length regex (>= 8 characters)
-    const passwordRegex = /^.{8,}$/;
-    if (!passwordRegex.test(formData.password)) {
-      toast.error("パスワードは8文字以上である必要があります");
+    if (!formData.password || formData.password.length < 4) {
+      toast.error("パスワードを入力してください");
       return;
     }
 
@@ -42,14 +38,34 @@ const Login = () => {
         withCredentials: true,
       });
       if (response.status === 200) {
-        const { user, refreshToken } = response.data;
-        login(user, refreshToken);
-        toast.success("ログインに成功しました");
+        const payload = response.data?.data ?? response.data;
+        const apiUser = payload.user ?? payload;
+        const refreshToken = payload.refreshToken ?? payload?.tokens?.refreshToken ?? "";
+        const fallbackName =
+          apiUser?.username || apiUser?.name || formData.email.split("@")[0];
+        const normalizedUser = {
+          email: apiUser?.email ?? formData.email,
+          name: apiUser?.name ?? fallbackName,
+          username: apiUser?.username ?? fallbackName,
+          id:
+            apiUser?.id ??
+            apiUser?.userId ??
+            apiUser?.username ??
+            fallbackName,
+          avatar: apiUser?.avatar ?? "",
+          role: apiUser?.role,
+        } as any;
+
+        login(normalizedUser, refreshToken);
+        toast.success("ログイン成功");
         navigate("/home");
       }
-    } catch (error) {
-      console.log(error);
-      toast.error("メールアドレスまたはパスワードが間違っています");
+    } catch (error: any) {
+      console.error(error);
+      const msg =
+        error?.response?.data?.message ||
+        "メールアドレスまたはパスワードが間違っています";
+      toast.error(msg);
     }
   };
 
