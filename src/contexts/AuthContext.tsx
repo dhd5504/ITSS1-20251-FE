@@ -1,5 +1,13 @@
-import { createContext, useContext, ReactNode, useState } from "react";
+import {
+  createContext,
+  useContext,
+  ReactNode,
+  useState,
+  useEffect,
+} from "react";
 import { useAppStore } from "@/store/useAppStore";
+import apiClient from "@/lib/axios";
+import { toast } from "sonner";
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -16,12 +24,52 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const { isAuthenticated, user, login, logout } = useAppStore();
   const [favorites, setFavorites] = useState<string[]>([]);
 
-  const toggleFavorite = (spotId: string) => {
+  useEffect(() => {
+    const fetchFavorites = async () => {
+      if (!isAuthenticated) {
+        setFavorites([]);
+        return;
+      }
+      try {
+        const response = await apiClient.get("/api/spots/favorites");
+        if (response.status === 200) {
+          // Assuming the API returns an array of objects with an 'id' property
+          // or just an array of IDs. Let's adjust based on common patterns.
+          const favoriteIds = response.data.data.map((spot: any) => spot.id);
+          setFavorites(favoriteIds);
+        }
+      } catch (error) {
+        console.error("Failed to fetch favorites:", error);
+      }
+    };
+
+    fetchFavorites();
+  }, [isAuthenticated]);
+
+  const toggleFavorite = async (spotId: string) => {
+    const isFavorite = favorites.includes(spotId);
+
+    // Optimistic UI update
     setFavorites((prev) =>
-      prev.includes(spotId)
-        ? prev.filter((id) => id !== spotId)
-        : [...prev, spotId]
+      isFavorite ? prev.filter((id) => id !== spotId) : [...prev, spotId]
     );
+
+    try {
+      if (isFavorite) {
+        await apiClient.delete(`/api/spots/${spotId}/favorite`);
+        toast.success("お気に入りから削除しました");
+      } else {
+        await apiClient.post(`/api/spots/${spotId}/favorite`);
+        toast.success("お気に入りに追加しました");
+      }
+    } catch (error) {
+      // Revert optimistic update on failure
+      setFavorites((prev) =>
+        isFavorite ? [...prev, spotId] : prev.filter((id) => id !== spotId)
+      );
+      toast.error("お気に入りの更新に失敗しました");
+      console.error("Failed to toggle favorite:", error);
+    }
   };
 
   return (

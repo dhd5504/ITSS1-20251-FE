@@ -41,9 +41,8 @@ const Home = () => {
   });
 
   // Filter spots based on favorites view
-  const displaySpots = showFavorites
-    ? spots.filter((spot) => favorites.includes(spot.id))
-    : spots;
+  // No local filtering needed anymore as we fetch from API
+  const displaySpots = spots;
 
   const handleToggleFavorites = () => {
     setShowFavorites(!showFavorites);
@@ -72,6 +71,15 @@ const Home = () => {
 
   const fetchSpots = async () => {
     try {
+      if (showFavorites) {
+        const response = await apiClient.get("api/spots/favorites");
+        if (response.status === 200) {
+          setSpots(response.data.data);
+          setTotalPages(1); // Usually favorites are not paginated or handled differently
+        }
+        return;
+      }
+
       // Build query string from params
       const queryParams = new URLSearchParams();
       if (params.q) queryParams.append("q", params.q);
@@ -94,9 +102,7 @@ const Home = () => {
       );
 
       if (response.status === 200) {
-        console.log(response.data.data);
         setSpots(response.data.data);
-        // Assuming API returns total pages in response.data.totalPages
         if (
           response.data.meta &&
           typeof response.data.meta.total === "number"
@@ -115,9 +121,8 @@ const Home = () => {
     const fetchData = async () => {
       await fetchSpots();
     };
-    console.log(latitude, longitude);
     fetchData();
-  }, [latitude, longitude, params, currentPage]);
+  }, [latitude, longitude, params, currentPage, showFavorites]);
 
   return (
     <div className="min-h-screen bg-background">

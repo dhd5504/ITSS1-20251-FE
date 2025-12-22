@@ -30,10 +30,6 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
 
-              {/* Public Routes */}
-              <Route path="/home" element={<Home />} />
-              <Route path="/spot/:id" element={<SpotDetail />} />
-
               {/* Guest Routes */}
               <Route element={<GuestRoute />}>
                 <Route path="/signup" element={<SignUp />} />
@@ -43,6 +39,8 @@ const App = () => (
 
               {/* Protected Routes */}
               <Route element={<ProtectedRoute />}>
+                <Route path="/home" element={<Home />} />
+                <Route path="/spot/:id" element={<SpotDetail />} />
                 <Route path="/review/:id" element={<Review />} />
                 <Route path="/profile" element={<Profile />} />
               </Route>
