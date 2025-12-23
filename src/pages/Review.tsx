@@ -37,6 +37,10 @@ const Review = () => {
     rating: number;
     content: string;
   } | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortOption, setSortOption] = useState<"newest" | "oldest" | "highest">(
+    "newest"
+  );
   const { user } = useAuth();
 
   const tags = ["環境", "清潔", "親切", "楽しい", "安全"];
@@ -189,6 +193,36 @@ const Review = () => {
     }
   };
 
+  const getFilteredAndSortedReviews = () => {
+    if (!spot?.reviews) return [];
+
+    // Filter by search query
+    let filtered = spot.reviews.filter((review) => {
+      const searchLower = searchQuery.toLowerCase();
+      const commentMatch = review.comment?.toLowerCase().includes(searchLower);
+      const userMatch = review.userName?.toLowerCase().includes(searchLower);
+      return commentMatch || userMatch;
+    });
+
+    // Sort reviews
+    const sorted = [...filtered].sort((a, b) => {
+      if (sortOption === "newest") {
+        return (
+          new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime()
+        );
+      } else if (sortOption === "oldest") {
+        return (
+          new Date(a.date || 0).getTime() - new Date(b.date || 0).getTime()
+        );
+      } else if (sortOption === "highest") {
+        return (b.rating || 0) - (a.rating || 0);
+      }
+      return 0;
+    });
+
+    return sorted;
+  };
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -294,76 +328,100 @@ const Review = () => {
           <div className="space-y-6">
             <Card className="p-6">
               <h3 className="font-semibold mb-3">レビュー検索</h3>
-              <div className="flex gap-2">
+              <div className="flex flex-col sm:flex-row gap-2">
                 <input
                   type="text"
                   placeholder="レビューを検索"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                   className="flex-1 px-3 py-2 border rounded-md"
                 />
-                <Button variant="outline">新しい順</Button>
+                <select
+                  value={sortOption}
+                  onChange={(e) =>
+                    setSortOption(
+                      e.target.value as "newest" | "oldest" | "highest"
+                    )
+                  }
+                  className="px-3 py-2 border rounded-md bg-white"
+                >
+                  <option value="newest">新しい順</option>
+                  <option value="oldest">古い順</option>
+                  <option value="highest">評価が高い順</option>
+                </select>
               </div>
             </Card>
 
             <div className="space-y-4">
               <h3 className="font-semibold">最近のレビュー</h3>
-              {spot.reviews.map((review) => (
-                <Card key={review.id} className="p-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <p className="font-medium">{review.userName}</p>
-                    <div className="flex items-center gap-1 text-yellow-500">
-                      {Array.from({ length: 5 }).map((_, i) => (
-                        <Star
-                          key={i}
-                          className={`w-3 h-3 ${
-                            i < review.rating ? "fill-current" : ""
-                          }`}
-                        />
+              {getFilteredAndSortedReviews().length === 0 ? (
+                <Card className="p-4">
+                  <p className="text-sm text-muted-foreground text-center">
+                    {searchQuery
+                      ? "検索結果が見つかりませんでした"
+                      : "レビューがまだありません"}
+                  </p>
+                </Card>
+              ) : (
+                getFilteredAndSortedReviews().map((review) => (
+                  <Card key={review.id} className="p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <p className="font-medium">{review.userName}</p>
+                      <div className="flex items-center gap-1 text-yellow-500">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <Star
+                            key={i}
+                            className={`w-3 h-3 ${
+                              i < review.rating ? "fill-current" : ""
+                            }`}
+                          />
+                        ))}
+                      </div>
+                      <span className="text-xs">{review.rating}</span>
+                    </div>
+                    <p className="text-sm text-muted-foreground mb-2">
+                      {review.comment}
+                    </p>
+                    <div className="flex gap-2 mb-2">
+                      {review.tags.map((tag) => (
+                        <Badge key={tag} variant="outline" className="text-xs">
+                          {tag}
+                        </Badge>
                       ))}
                     </div>
-                    <span className="text-xs">{review.rating}</span>
-                  </div>
-                  <p className="text-sm text-muted-foreground mb-2">
-                    {review.comment}
-                  </p>
-                  <div className="flex gap-2 mb-2">
-                    {review.tags.map((tag) => (
-                      <Badge key={tag} variant="outline" className="text-xs">
-                        {tag}
-                      </Badge>
-                    ))}
-                  </div>
-                  <div className="flex justify-between items-center text-xs text-muted-foreground">
-                    <span>
-                      投稿者 {review.userName} •{" "}
-                      {formatDateTime(review.date as string)}
-                    </span>
-                    {canModifyReview(review.userId as string) && (
-                      <div className="flex gap-2">
-                        <button
-                          className="text-primary hover:underline"
-                          onClick={() =>
-                            handleEditReview(
-                              review.id as string,
-                              review.rating as number,
-                              (review.comment as string) || ""
-                            )
-                          }
-                        >
-                          編集
-                        </button>
-                        <button
-                          className="text-destructive hover:underline"
-                          onClick={() =>
-                            handleDeleteReview(review.id as string)
-                          }
-                        >
-                          削除
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </Card>
-              ))}
+                    <div className="flex justify-between items-center text-xs text-muted-foreground">
+                      <span>
+                        投稿者 {review.userName} •{" "}
+                        {formatDateTime(review.date as string)}
+                      </span>
+                      {canModifyReview(review.userId as string) && (
+                        <div className="flex gap-2">
+                          <button
+                            className="text-primary hover:underline"
+                            onClick={() =>
+                              handleEditReview(
+                                review.id as string,
+                                review.rating as number,
+                                (review.comment as string) || ""
+                              )
+                            }
+                          >
+                            編集
+                          </button>
+                          <button
+                            className="text-destructive hover:underline"
+                            onClick={() =>
+                              handleDeleteReview(review.id as string)
+                            }
+                          >
+                            削除
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </Card>
+                ))
+              )}
             </div>
           </div>
         </div>
