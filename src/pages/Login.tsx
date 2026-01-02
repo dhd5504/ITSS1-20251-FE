@@ -60,10 +60,7 @@ const Login = () => {
       }
     } catch (error: any) {
       console.error(error);
-      const msg =
-        error?.response?.data?.message ||
-        "メールアドレスまたはパスワードが間違っています";
-      toast.error(msg);
+      toast.error("メールアドレスまたはパスワードが間違っています");
     }
   };
 
