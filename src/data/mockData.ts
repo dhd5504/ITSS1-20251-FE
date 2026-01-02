@@ -12,6 +12,8 @@ export interface Spot {
   phone: string;
   description: string;
   features: string;
+  lat?: number;
+  lng?: number;
   recommendedTransport?: string;
   reviews: Review[];
 }

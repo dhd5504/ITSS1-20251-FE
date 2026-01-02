@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+﻿import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -77,6 +77,18 @@ const SpotDetail = () => {
       return url.replace("w=800", "w=1920").replace("w=400", "w=1920");
     }
     return url.startsWith("http") ? url : `/${url}`;
+  };
+
+  const openInGoogleMaps = () => {
+    if (!spot) return;
+    const query =
+      spot.lat != null && spot.lng != null
+        ? `${spot.lat},${spot.lng}`
+        : `${spot.name} ${spot.address}`;
+    const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+      query
+    )}`;
+    window.open(url, "_blank", "noopener");
   };
 
   const canModifyReview = (reviewUserId?: string) => {
@@ -190,11 +202,19 @@ const SpotDetail = () => {
           <p className="text-muted-foreground">{spot.description}</p>
 
           <div className="space-y-2">
-            <div className="flex items-start gap-2">
+            <div className="flex items-start gap-2 relative">
               <MapPin className="w-4 h-4 mt-1 text-muted-foreground flex-shrink-0" />
               <div>
                 <p className="font-medium">住所</p>
                 <p className="text-sm text-muted-foreground">{spot.address}</p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="absolute right-0 top-0"
+                  onClick={openInGoogleMaps}
+                >
+                  Googleマップで開く
+                </Button>
               </div>
             </div>
 
