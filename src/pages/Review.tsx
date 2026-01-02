@@ -41,6 +41,7 @@ const Review = () => {
   const [sortOption, setSortOption] = useState<"newest" | "oldest" | "highest">(
     "newest"
   );
+  const [hasExistingReview, setHasExistingReview] = useState(false);
   const { user } = useAuth();
 
   const tags = ["環境", "清潔", "親切", "楽しい", "安全"];
@@ -66,6 +67,37 @@ const Review = () => {
       fetchSpot();
     }
   }, [id]);
+
+  // Check if user has existing review and auto-switch to edit mode
+  useEffect(() => {
+    if (spot?.reviews && user) {
+      const currentUserId = (user.id ?? "").toString().trim().toLowerCase();
+      const existingReview = spot.reviews.find((review) => {
+        const reviewUserId = (review.userId ?? "")
+          .toString()
+          .trim()
+          .toLowerCase();
+        return reviewUserId === currentUserId;
+      });
+
+      if (existingReview && !editingReview) {
+        setHasExistingReview(true);
+        // Auto-populate the form with existing review data
+        setEditingReview({
+          id: existingReview.id as string,
+          rating: existingReview.rating as number,
+          content: (existingReview.comment as string) || "",
+        });
+        setRating(existingReview.rating as number);
+        setComment((existingReview.comment as string) || "");
+        toast.info(
+          "このスポットは既に評価済みです。編集モードに切り替えました。"
+        );
+      } else if (!existingReview) {
+        setHasExistingReview(false);
+      }
+    }
+  }, [spot, user]);
 
   const canModifyReview = (reviewUserId?: string) => {
     if (!user) return false;
@@ -153,6 +185,12 @@ const Review = () => {
     }
     if (!comment.trim()) {
       toast.error("コメントを入力してください");
+      return;
+    }
+
+    // Check if user has existing review but not in edit mode
+    if (hasExistingReview && !editingReview) {
+      toast.error("このスポットは既に評価済みです。編集をご利用ください。");
       return;
     }
 
