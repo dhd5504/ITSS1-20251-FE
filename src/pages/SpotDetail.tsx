@@ -69,6 +69,8 @@ const SpotDetail = () => {
   }
 
   const isFavorite = favorites.includes(spot.id);
+  const ratingValue = Number(spot.rating ?? 0);
+  const displayRating = ratingValue.toFixed(1);
 
   const getOptimizedImageUrl = (url: string) => {
     if (url.includes("images.unsplash.com")) {
@@ -175,12 +177,12 @@ const SpotDetail = () => {
                 <Star
                   key={i}
                   className={`w-4 h-4 ${
-                    i < Math.floor(spot.rating) ? "fill-current" : ""
+                    i < Math.floor(ratingValue) ? "fill-current" : ""
                   }`}
                 />
               ))}
               <span className="text-sm text-muted-foreground">
-                {spot.rating} / 5 ({spot.reviewCount}件)
+                {displayRating} / 5 ({spot.reviewCount}件)
               </span>
             </div>
           </div>
@@ -348,7 +350,7 @@ const SpotDetail = () => {
             className="w-full bg-gradient-to-r from-pink-500 to-purple-500 hover:opacity-90"
             onClick={() => navigate(`/review/${spot.id}`)}
           >
-            このスポットを予約する
+            このスポットを評価する
           </Button>
         </Card>
       </div>
